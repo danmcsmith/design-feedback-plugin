@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.local
+*.local
+
+# Server
+server/node_modules/
+server/dist/
+
+# Demo
+demo/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db

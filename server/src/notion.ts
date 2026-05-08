@@ -29,6 +29,7 @@ export async function provisionDatabase(projectName: string): Promise<string> {
         },
       },
       Screenshot: { url: {} },
+      Tags: { multi_select: { options: [] } },
     },
   })
 
@@ -38,6 +39,7 @@ export async function provisionDatabase(projectName: string): Promise<string> {
 export interface SyncCommentParams {
   text: string
   authorName: string
+  tags: string[]
   x: number
   y: number
   pageUrl: string
@@ -47,7 +49,7 @@ export interface SyncCommentParams {
 }
 
 export async function syncComment(params: SyncCommentParams): Promise<string> {
-  const { text, authorName, x, y, pageUrl, timestamp, screenshotPublicUrl, notionDatabaseId } = params
+  const { text, authorName, tags, x, y, pageUrl, timestamp, screenshotPublicUrl, notionDatabaseId } = params
 
   const truncatedTitle = text.length > 100 ? text.slice(0, 97) + '...' : text
 
@@ -80,6 +82,9 @@ export async function syncComment(params: SyncCommentParams): Promise<string> {
       },
       Screenshot: {
         url: screenshotPublicUrl ?? null,
+      },
+      Tags: {
+        multi_select: tags.map((name) => ({ name })),
       },
     },
   })

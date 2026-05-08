@@ -2,6 +2,31 @@ import type { Comment, ProjectConfig } from './types'
 
 const AUTHOR_KEY = 'df_author_name'
 const FAB_POS_KEY = 'df_fab_pos'
+const CUSTOM_TAGS_KEY = 'df_custom_tags'
+
+export const DEFAULT_TAGS = ['Design', 'Eng']
+
+export function loadCustomTags(): string[] {
+  try {
+    const raw = localStorage.getItem(CUSTOM_TAGS_KEY)
+    return raw ? (JSON.parse(raw) as string[]) : []
+  } catch {
+    return []
+  }
+}
+
+export function saveCustomTag(tag: string): void {
+  try {
+    const existing = loadCustomTags()
+    if (!existing.includes(tag)) {
+      localStorage.setItem(CUSTOM_TAGS_KEY, JSON.stringify([...existing, tag]))
+    }
+  } catch {}
+}
+
+export function loadAllTags(): string[] {
+  return [...DEFAULT_TAGS, ...loadCustomTags()]
+}
 
 export function loadAuthorName(): string {
   return localStorage.getItem(AUTHOR_KEY) ?? ''

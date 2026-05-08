@@ -42,6 +42,11 @@ app.post('/api/provision', async (req, res) => {
 })
 
 app.post('/api/upload', async (req, res) => {
+  if (!process.env.DATABASE_URL) {
+    res.status(503).json({ error: 'Screenshot storage not configured (DATABASE_URL missing)' })
+    return
+  }
+
   const { dataUrl } = req.body as { dataUrl?: string }
 
   if (!dataUrl?.startsWith('data:image/')) {
@@ -87,6 +92,7 @@ app.post('/api/sync', async (req, res) => {
     commentId,
     text,
     authorName,
+    tags,
     x,
     y,
     pageUrl,
@@ -97,6 +103,7 @@ app.post('/api/sync', async (req, res) => {
     commentId?: string
     text?: string
     authorName?: string
+    tags?: string[]
     x?: number
     y?: number
     pageUrl?: string
@@ -114,6 +121,7 @@ app.post('/api/sync', async (req, res) => {
     const notionPageId = await syncComment({
       text,
       authorName: authorName ?? 'Anonymous',
+      tags: tags ?? [],
       x,
       y,
       pageUrl: pageUrl ?? '',

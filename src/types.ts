@@ -1,11 +1,19 @@
 export type SyncStatus = 'local' | 'syncing' | 'synced' | 'error'
 
+export interface Reply {
+  id: string
+  authorName: string
+  text: string
+  timestamp: string
+}
+
 export interface Comment {
   id: string
   x: number
   y: number
   text: string
   authorName: string
+  tags: string[]
   timestamp: string
   pageUrl: string
   screenshotDataUrl?: string
@@ -13,6 +21,7 @@ export interface Comment {
   syncStatus: SyncStatus
   notionPageId?: string
   errorMessage?: string
+  replies?: Reply[]
 }
 
 export interface PendingPin {

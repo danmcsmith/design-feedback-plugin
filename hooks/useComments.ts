@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import type { Comment, SyncStatus } from '../src/types'
+import type { Comment, Reply, SyncStatus } from '../src/types'
 import { loadComments, saveComments } from '../src/storage'
 
 export function useComments(projectName: string) {
@@ -42,5 +42,26 @@ export function useComments(projectName: string) {
     [updateComment],
   )
 
-  return { comments, addComment, updateComment, updateSyncStatus }
+  const addReply = useCallback(
+    (commentId: string, authorName: string, text: string) => {
+      const reply: Reply = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        authorName,
+        text,
+        timestamp: new Date().toISOString(),
+      }
+      setComments((prev) => {
+        const next = prev.map((c) =>
+          c.id === commentId
+            ? { ...c, replies: [...(c.replies ?? []), reply] }
+            : c,
+        )
+        saveComments(projectName, next)
+        return next
+      })
+    },
+    [projectName],
+  )
+
+  return { comments, addComment, updateComment, updateSyncStatus, addReply }
 }

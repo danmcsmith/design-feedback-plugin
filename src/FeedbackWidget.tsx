@@ -32,7 +32,7 @@ export function FeedbackWidget({ projectName, apiUrl }: FeedbackWidgetProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
 
-  const { comments, addComment, updateSyncStatus } = useComments(projectName)
+  const { comments, addComment, updateSyncStatus, addReply } = useComments(projectName)
   const { capture } = useScreenshot()
 
   useNotionSync({ projectName, apiUrl, comments, updateSyncStatus })
@@ -57,7 +57,7 @@ export function FeedbackWidget({ projectName, apiUrl }: FeedbackWidgetProps) {
     setPendingPin({ x, y, xPct, yPct, screenshotDataUrl })
   }
 
-  function handleFormSubmit(text: string, authorName: string) {
+  function handleFormSubmit(text: string, authorName: string, tags: string[]) {
     if (!pendingPin) return
 
     addComment({
@@ -65,6 +65,7 @@ export function FeedbackWidget({ projectName, apiUrl }: FeedbackWidgetProps) {
       y: pendingPin.yPct,
       text,
       authorName,
+      tags,
       screenshotDataUrl: pendingPin.screenshotDataUrl,
     })
 
@@ -90,10 +91,10 @@ export function FeedbackWidget({ projectName, apiUrl }: FeedbackWidgetProps) {
       {pendingPin && (
         <>
           <div
-            className="df-pin"
+            className="df-pointer-events-none df-fixed df-z-form -df-translate-x-1/2 -df-translate-y-1/2"
             style={{ left: pendingPin.x, top: pendingPin.y }}
           >
-            <div className="df-pin__dot" />
+            <div className="df-h-3 df-w-3 df-rounded-full df-border-2 df-border-white df-bg-indigo-600 df-shadow-[0_0_0_2px_#4f46e5,0_2px_8px_rgba(79,70,229,0.5)]" />
           </div>
           <CommentForm
             pinX={pendingPin.x}
@@ -114,6 +115,7 @@ export function FeedbackWidget({ projectName, apiUrl }: FeedbackWidgetProps) {
         onOpenSettings={() => setShowSettings((v) => !v)}
         showSettings={showSettings}
         settingsContent={<SettingsPanel projectName={projectName} apiUrl={apiUrl} />}
+        onReply={addReply}
       />
 
       <FloatingButton

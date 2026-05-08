@@ -15,25 +15,23 @@ export function SettingsPanel({ projectName, apiUrl }: SettingsPanelProps) {
   }
 
   return (
-    <div className="df-settings">
-      <div className="df-settings__row">
-        <span className="df-settings__label">Project</span>
-        <span className="df-settings__value df-settings__value--mono">{projectName}</span>
-      </div>
-      <div className="df-settings__row">
-        <span className="df-settings__label">API URL</span>
-        <span className="df-settings__value df-settings__value--mono">{apiUrl}</span>
-      </div>
-      <div className="df-settings__row">
-        <span className="df-settings__label">Notion DB</span>
-        <span className="df-settings__value df-settings__value--mono">
-          {config.notionDatabaseId
-            ? `${config.notionDatabaseId.slice(0, 8)}…`
-            : 'Not provisioned'}
-        </span>
-      </div>
+    <div className="df-flex df-flex-col df-gap-4 df-p-4">
+      {[
+        { label: 'Project', value: projectName },
+        { label: 'API URL', value: apiUrl },
+        { label: 'Notion DB', value: config.notionDatabaseId ? `${config.notionDatabaseId.slice(0, 8)}…` : 'Not provisioned' },
+      ].map(({ label, value }) => (
+        <div key={label} className="df-flex df-flex-col df-gap-0.5">
+          <span className="df-text-[10px] df-font-semibold df-uppercase df-tracking-widest df-text-gray-400">{label}</span>
+          <span className="df-break-all df-font-mono df-text-xs df-text-gray-600">{value}</span>
+        </div>
+      ))}
+
       {config.notionDatabaseId && (
-        <button className="df-settings__reset-btn" onClick={handleResetDatabase}>
+        <button
+          className="df-mt-1 df-rounded-md df-border df-border-red-200 df-bg-red-50 df-px-3 df-py-2 df-text-left df-text-xs df-font-medium df-text-red-600 df-transition hover:df-bg-red-100"
+          onClick={handleResetDatabase}
+        >
           Reset Notion database
         </button>
       )}

@@ -75,6 +75,7 @@ export function useNotionSync({ projectName, apiUrl, comments, updateSyncStatus 
           commentId: comment.id,
           text: comment.text,
           authorName: comment.authorName,
+          tags: comment.tags ?? [],
           x: comment.x,
           y: comment.y,
           pageUrl: comment.pageUrl,

@@ -63,5 +63,57 @@ export function useComments(projectName: string) {
     [projectName],
   )
 
-  return { comments, addComment, updateComment, updateSyncStatus, addReply }
+  const toggleCommentReaction = useCallback(
+    (commentId: string, emoji: string, authorName: string) => {
+      setComments((prev) => {
+        const next = prev.map((c) => {
+          if (c.id !== commentId) return c
+          return { ...c, reactions: toggleReaction(c.reactions ?? {}, emoji, authorName) }
+        })
+        saveComments(projectName, next)
+        return next
+      })
+    },
+    [projectName],
+  )
+
+  const toggleReplyReaction = useCallback(
+    (commentId: string, replyId: string, emoji: string, authorName: string) => {
+      setComments((prev) => {
+        const next = prev.map((c) => {
+          if (c.id !== commentId) return c
+          return {
+            ...c,
+            replies: (c.replies ?? []).map((r) =>
+              r.id !== replyId
+                ? r
+                : { ...r, reactions: toggleReaction(r.reactions ?? {}, emoji, authorName) },
+            ),
+          }
+        })
+        saveComments(projectName, next)
+        return next
+      })
+    },
+    [projectName],
+  )
+
+  return { comments, addComment, updateComment, updateSyncStatus, addReply, toggleCommentReaction, toggleReplyReaction }
+}
+
+function toggleReaction(
+  reactions: Record<string, string[]>,
+  emoji: string,
+  authorName: string,
+): Record<string, string[]> {
+  const updated = { ...reactions }
+  const authors = updated[emoji] ?? []
+  if (authors.includes(authorName)) {
+    const filtered = authors.filter((a) => a !== authorName)
+    if (filtered.length === 0) delete updated[emoji]
+    else updated[emoji] = filtered
+  } else {
+    updated[emoji] = [...authors, authorName]
+  }
+  return updated
 }

@@ -1,17 +1,22 @@
 import { useState, useRef, useEffect } from 'react'
+import { EmojiPickerPortal } from './EmojiPickerPortal'
 import type { Comment, Reply } from '../types'
 import { cn } from '../lib/utils'
 import { getTagColor } from '../lib/tagColors'
 import { loadAllTags, loadAuthorName, saveAuthorName } from '../storage'
 
+
 interface CommentCardProps {
   comment: Comment
   onReply: (commentId: string, authorName: string, text: string) => void
+  onReactToComment: (commentId: string, emoji: string) => void
+  onReactToReply: (commentId: string, replyId: string, emoji: string) => void
 }
 
-export function CommentCard({ comment, onReply }: CommentCardProps) {
+export function CommentCard({ comment, onReply, onReactToComment, onReactToReply }: CommentCardProps) {
   const screenshotSrc = comment.screenshotPublicUrl ?? comment.screenshotDataUrl
   const allTags = loadAllTags()
+  const currentUser = loadAuthorName()
 
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [replyText, setReplyText] = useState('')
@@ -81,6 +86,13 @@ export function CommentCard({ comment, onReply }: CommentCardProps) {
         </div>
       )}
 
+      {/* Reactions */}
+      <ReactionBar
+        reactions={comment.reactions ?? {}}
+        currentUser={currentUser}
+        onToggle={(emoji) => onReactToComment(comment.id, emoji)}
+      />
+
       {/* Sync badge */}
       <div className="df-mt-2">
         <SyncBadge status={comment.syncStatus} error={comment.errorMessage} />
@@ -90,7 +102,12 @@ export function CommentCard({ comment, onReply }: CommentCardProps) {
       {(comment.replies?.length ?? 0) > 0 && (
         <div className="df-mt-3 df-border-l-2 df-border-gray-100 df-pl-3 df-flex df-flex-col df-gap-2.5">
           {comment.replies!.map((reply) => (
-            <ReplyItem key={reply.id} reply={reply} />
+            <ReplyItem
+              key={reply.id}
+              reply={reply}
+              currentUser={currentUser}
+              onReact={(emoji) => onReactToReply(comment.id, reply.id, emoji)}
+            />
           ))}
         </div>
       )}
@@ -145,7 +162,69 @@ export function CommentCard({ comment, onReply }: CommentCardProps) {
   )
 }
 
-function ReplyItem({ reply }: { reply: Reply }) {
+// ── ReactionBar ──────────────────────────────────────────────
+
+interface ReactionBarProps {
+  reactions: Record<string, string[]>
+  currentUser: string
+  onToggle: (emoji: string) => void
+}
+
+function ReactionBar({ reactions, currentUser, onToggle }: ReactionBarProps) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+
+  return (
+    <div className="df-mt-2 df-flex df-flex-wrap df-items-center df-gap-1">
+      {Object.entries(reactions).map(([emoji, authors]) => {
+        const reacted = authors.includes(currentUser)
+        return (
+          <button
+            key={emoji}
+            onClick={() => onToggle(emoji)}
+            title={authors.join(', ')}
+            className={cn(
+              'df-inline-flex df-items-center df-gap-1 df-rounded-full df-border df-px-2 df-py-0.5 df-text-xs df-transition-colors',
+              reacted
+                ? 'df-border-indigo-300 df-bg-indigo-50 df-text-indigo-700'
+                : 'df-border-gray-200 df-bg-white df-text-gray-600 hover:df-border-gray-300 hover:df-bg-gray-50',
+            )}
+          >
+            <span>{emoji}</span>
+            <span className="df-font-medium">{authors.length}</span>
+          </button>
+        )
+      })}
+
+      <button
+        ref={triggerRef}
+        onClick={() => setPickerOpen((v) => !v)}
+        title="Add reaction"
+        className="df-inline-flex df-items-center df-justify-center df-rounded-full df-border df-border-dashed df-border-gray-200 df-px-2 df-py-0.5 df-text-xs df-text-gray-400 df-transition-colors hover:df-border-gray-300 hover:df-text-gray-600"
+      >
+        😊
+      </button>
+
+      {pickerOpen && (
+        <EmojiPickerPortal
+          anchorRef={triggerRef}
+          onSelect={onToggle}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── ReplyItem ────────────────────────────────────────────────
+
+interface ReplyItemProps {
+  reply: Reply
+  currentUser: string
+  onReact: (emoji: string) => void
+}
+
+function ReplyItem({ reply, currentUser, onReact }: ReplyItemProps) {
   return (
     <div>
       <div className="df-flex df-items-baseline df-justify-between df-gap-2 df-mb-0.5">
@@ -155,9 +234,16 @@ function ReplyItem({ reply }: { reply: Reply }) {
         </span>
       </div>
       <p className="df-text-xs df-leading-relaxed df-text-gray-600">{reply.text}</p>
+      <ReactionBar
+        reactions={reply.reactions ?? {}}
+        currentUser={currentUser}
+        onToggle={onReact}
+      />
     </div>
   )
 }
+
+// ── SyncBadge ────────────────────────────────────────────────
 
 function SyncBadge({ status, error }: { status: Comment['syncStatus']; error?: string }) {
   const base = 'df-inline-flex df-items-center df-rounded-full df-px-2 df-py-0.5 df-text-xs df-font-medium'
@@ -166,6 +252,8 @@ function SyncBadge({ status, error }: { status: Comment['syncStatus']; error?: s
   if (status === 'synced')  return <span className={cn(base, 'df-bg-emerald-50 df-text-emerald-700')}>✓ Notion</span>
   return <span className={cn(base, 'df-bg-red-50 df-text-red-600 df-cursor-help')} title={error}>Sync failed</span>
 }
+
+// ── Helpers ──────────────────────────────────────────────────
 
 function formatRelative(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()

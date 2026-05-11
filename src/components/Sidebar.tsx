@@ -10,9 +10,11 @@ interface SidebarProps {
   showSettings: boolean
   settingsContent: React.ReactNode
   onReply: (commentId: string, authorName: string, text: string) => void
+  onReactToComment: (commentId: string, emoji: string) => void
+  onReactToReply: (commentId: string, replyId: string, emoji: string) => void
 }
 
-export function Sidebar({ comments, isOpen, onToggle, onOpenSettings, showSettings, settingsContent, onReply }: SidebarProps) {
+export function Sidebar({ comments, isOpen, onToggle, onOpenSettings, showSettings, settingsContent, onReply, onReactToComment, onReactToReply }: SidebarProps) {
   return (
     <>
       {/* Pull tab */}
@@ -74,7 +76,15 @@ export function Sidebar({ comments, isOpen, onToggle, onOpenSettings, showSettin
               <p className="df-text-xs df-text-gray-400">Click the button to add feedback.</p>
             </div>
           ) : (
-            comments.map((comment) => <CommentCard key={comment.id} comment={comment} onReply={onReply} />)
+            comments.map((comment) => (
+              <CommentCard
+                key={comment.id}
+                comment={comment}
+                onReply={onReply}
+                onReactToComment={onReactToComment}
+                onReactToReply={onReactToReply}
+              />
+            ))
           )}
         </div>
       </div>

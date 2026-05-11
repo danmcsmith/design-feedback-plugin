@@ -5,6 +5,7 @@ export interface Reply {
   authorName: string
   text: string
   timestamp: string
+  reactions?: Record<string, string[]>
 }
 
 export interface Comment {
@@ -22,6 +23,7 @@ export interface Comment {
   notionPageId?: string
   errorMessage?: string
   replies?: Reply[]
+  reactions?: Record<string, string[]>
 }
 
 export interface PendingPin {

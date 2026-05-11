@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import './widget.css'
 import type { PendingPin } from './types'
+import { loadAuthorName } from './storage'
 import { useComments } from '../hooks/useComments'
 import { useScreenshot } from '../hooks/useScreenshot'
 import { useNotionSync } from '../hooks/useNotionSync'
@@ -32,7 +33,7 @@ export function FeedbackWidget({ projectName, apiUrl }: FeedbackWidgetProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
 
-  const { comments, addComment, updateSyncStatus, addReply } = useComments(projectName)
+  const { comments, addComment, updateSyncStatus, addReply, toggleCommentReaction, toggleReplyReaction } = useComments(projectName)
   const { capture } = useScreenshot()
 
   useNotionSync({ projectName, apiUrl, comments, updateSyncStatus })
@@ -116,6 +117,8 @@ export function FeedbackWidget({ projectName, apiUrl }: FeedbackWidgetProps) {
         showSettings={showSettings}
         settingsContent={<SettingsPanel projectName={projectName} apiUrl={apiUrl} />}
         onReply={addReply}
+        onReactToComment={(commentId, emoji) => toggleCommentReaction(commentId, emoji, loadAuthorName())}
+        onReactToReply={(commentId, replyId, emoji) => toggleReplyReaction(commentId, replyId, emoji, loadAuthorName())}
       />
 
       <FloatingButton
